@@ -203,7 +203,7 @@ So we can clone this repo...
 ### Clone ArchMatic
 Typically I just clone it into the home folder and delete it once I'm done.
 
-    $   git clone https://github.com/rickellis/ArchMatic.git
+    $   git clone https://github.com/ChrisTitusTech/ArchMatic.git
 
 ---
 
