@@ -8,16 +8,16 @@
 #-------------------------------------------------------------------------
 
 if ! source install.conf; then
-	echo "Please enter hostname:"
+	printf "Please enter hostname:"
 	read hostname
 
-	echo "Please enter username:"
+	printf "Please enter username:"
 	read username
 
-	echo "Please enter password:"
+	printf "Please enter password:"
 	read -s password
 
-	echo "Please repeat password:"
+	printf "Please repeat password:"
 	read -s password2
 
 	# Check both passwords match
