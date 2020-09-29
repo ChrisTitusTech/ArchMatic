@@ -13,7 +13,15 @@ echo "-------------------------------------------------"
 timedatectl set-ntp true
 pacman -S --noconfirm pacman-contrib
 mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-curl -s "https://www.archlinux.org/mirrorlist/?country=US&protocol=https&use_mirror_status=on" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 - > /etc/pacman.d/mirrorlist
+
+## Check which country the user is from
+echo -n "Which country are you currently in? Answer in countrycode with caps. For example: Sweden = SE, Spain = ES, Germany = DE (Nothing for US): "
+read country
+if [[ -z $country ]]
+then
+	country=US
+fi
+curl -s "https://www.archlinux.org/mirrorlist/?country=$country&protocol=https&use_mirror_status=on" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 - > /etc/pacman.d/mirrorlist
 
 
 
@@ -64,6 +72,9 @@ echo "-- Arch Install on Main Drive       --"
 echo "--------------------------------------"
 pacstrap /mnt base base-devel linux linux-firmware vim nano sudo --noconfirm --needed
 genfstab -U /mnt >> /mnt/etc/fstab
+
+## Copy the recently generated mirrorlist to the new installation.
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 arch-chroot /mnt
 
 echo "--------------------------------------"
