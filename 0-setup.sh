@@ -26,13 +26,6 @@ if ! source install.conf; then
   printf "password="$password"\n" >> "install.conf"
 fi
 
-echo "-------------------------------------------------"
-echo "Setting up mirrors for optimal download - US Only"
-echo "-------------------------------------------------"
-pacman -S --noconfirm pacman-contrib curl
-mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-curl -s "https://www.archlinux.org/mirrorlist/?country=US&protocol=https&use_mirror_status=on" | sed -e 's/^#Server/Server/' -e '/^#/d' | rankmirrors -n 5 - > /etc/pacman.d/mirrorlist
-
 nc=$(grep -c ^processor /proc/cpuinfo)
 echo "You have " $nc" cores."
 echo "-------------------------------------------------"
@@ -42,16 +35,64 @@ echo "Changing the compression settings for "$nc" cores."
 sudo sed -i 's/COMPRESSXZ=(xz -c -z -)/COMPRESSXZ=(xz -c -T $nc -z -)/g' /etc/makepkg.conf
 
 echo "-------------------------------------------------"
-echo "       Setup Language to US and set locale       "
+echo "                    Set locale                   "
 echo "-------------------------------------------------"
-sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+
+echo -n "Do you want an American locale? Type anything to open nano to uncomment the desired locales. Otherwise the script will automatically set it to US: "
+read desiredlocales
+if [[ -z $desiredlocales ]]
+then 
+	nano /etc/locale.gen
+else 
+	sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+fi
 locale-gen
-timedatectl --no-ask-password set-timezone America/Chicago
+
+## Let the user decide the timezone
+echo -n "Which timezone do you want? For a list of working timezones type 'print'. The script will default to 'America/Chicago': "
+read desiredtimezone
+while [[ $desiredtimezone = print ]]
+do
+        timedatectl list-timezones|less
+        echo -n "Which timezone do you want? For a list of working timezones type 'print'. The script will default to 'America/Chicago': "
+        read desiredtimezone
+done
+
+if [[ -z $desiredtimezone ]]
+then
+        desiredtimezone=America/Chicago
+fi
+
+timedatectl --no-ask-password set-timezone $desiredtimezone
 timedatectl --no-ask-password set-ntp 1
-localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_COLLATE="" LC_TIME="en_US.UTF-8"
+
+echo -n "Do you want to set a custom language? Recommended if you chose anything other than an american locale. This will automatically set to american english (en_US.UTF-8) if no input is provided. Type anything to open an editor to set the language: "
+read desiredlocaletoset
+
+if [[ -z $desiredlocaletoset ]]
+then
+	localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_COLLATE="" LC_TIME="en_US.UTF-8"
+else
+	nano /etc/locale.conf
+fi
+
 
 # Set keymaps
-localectl --no-ask-password set-keymap us
+echo -n "Which keyboard layout do you want to use? type 'print' to show avalible layouts. This will default to an American layout us"
+read desiredkeymap
+
+while [[ $deisredkeymap = print ]]
+do
+	localectl list-keymaps|less
+	echo -n "Which keyboard layout do you want to use? type 'print' to show avalible layouts. This will default to an American layout us"
+	read desiredkeymap
+done
+
+if [[ -z $desiredkeymap ]]
+then
+	desiredkeymap=us
+fi
+localectl --no-ask-password set-keymap $desiredkeymap
 
 # Hostname
 hostnamectl --no-ask-password set-hostname $hostname

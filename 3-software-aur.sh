@@ -44,6 +44,16 @@ PKGS=(
 
 cd ${HOME}/yay
 makepkg -si
+# You can solove users running this script as root with this and then doing the same for the next for statement. Howerver I will leave this up to you.
+#if [[ whoami = root  ]]
+#then
+#	useradd -M -G wheel tempuser
+#	su tempuser -C 'echo "hello!"'
+#	userdel tempuser
+#else
+#	makepkg -si
+#fi
+
 
 for PKG in "${PKGS[@]}"; do
     yay -S --noconfirm $PKG
